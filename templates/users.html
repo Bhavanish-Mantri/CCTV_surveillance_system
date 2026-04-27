@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% block title %}Manage Users — CCTV AI System{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">Manage Users</h1>
+  <p class="page-subtitle">Register people whose faces should be recognised by the system</p>
+</div>
+
+<div class="grid-2" style="margin-bottom:28px">
+  <!-- Add User Form -->
+  <div class="card">
+    <div class="card-title">➕ Register New User <span class="arrow">›</span></div>
+    <form id="addUserForm" enctype="multipart/form-data">
+      <div class="form-group">
+        <label class="form-label" for="userName">Full Name</label>
+        <input id="userName" name="name" type="text" class="form-control" placeholder="e.g. Alice Johnson" required />
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="userImage">Face Photo</label>
+        <div class="upload-zone" id="imgUploadZone" style="padding:28px 20px">
+          <input type="file" id="userImage" name="image" accept=".jpg,.jpeg,.png" required />
+          <div class="upload-icon" style="font-size:32px;margin-bottom:8px">📷</div>
+          <div class="upload-title" style="font-size:14px" id="imgFileName">Select a clear face photo</div>
+          <div class="upload-sub" style="font-size:12px">JPG, JPEG, PNG — frontal face preferred</div>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary" id="addUserBtn">➕ Add User</button>
+    </form>
+  </div>
+
+  <!-- Tips -->
+  <div class="card">
+    <div class="card-title">📝 Tips for Better Recognition <span class="arrow">›</span></div>
+    <ul style="color:var(--text-body);font-size:14px;line-height:2.2;padding-left:20px;">
+      <li>Use a <strong style="color:var(--text-dark)">clear, well-lit</strong> frontal face photo</li>
+      <li>Only <strong style="color:var(--text-dark)">one face</strong> should be visible in the image</li>
+      <li>Avoid sunglasses, heavy shadows, or obscured face</li>
+      <li>Minimum resolution: <strong style="color:var(--text-dark)">200×200 px</strong></li>
+      <li>Threshold: <span class="badge">{{ threshold }}</span></li>
+      <li>Cooldown: <span class="badge">{{ cooldown }} min</span></li>
+    </ul>
+  </div>
+</div>
+
+<!-- User Grid -->
+<div class="card">
+  <div class="card-title">Registered Users ({{ users|length }}) <span class="arrow">›</span></div>
+  {% if users %}
+  <div class="user-grid" id="userGrid">
+    {% for user in users %}
+    <div class="user-card" id="user-card-{{ user.id }}">
+      {% if user.image_path %}
+        <img src="/static/{{ user.image_path }}" alt="{{ user.name }}" class="user-avatar"
+             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+        <div class="user-avatar-placeholder" style="display:none">👤</div>
+      {% else %}
+        <div class="user-avatar-placeholder">👤</div>
+      {% endif %}
+      <div class="user-info">
+        <div class="user-name">{{ user.name }}</div>
+        <div class="user-id">ID: {{ user.id }}</div>
+        <div class="user-id">{{ user.created_at }}</div>
+        <button class="btn btn-danger btn-sm delete-user-btn" style="margin-top:10px;width:100%"
+                data-user-id="{{ user.id }}" data-user-name="{{ user.name }}">
+          🗑 Remove
+        </button>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-icon">👥</div>
+    <div class="empty-title">No users registered yet</div>
+    <p>Add people using the form above so the system can recognise them.</p>
+  </div>
+  {% endif %}
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const imgFile = document.getElementById('userImage');
+const imgFileName = document.getElementById('imgFileName');
+imgFile.addEventListener('change', () => {
+  imgFileName.textContent = imgFile.files[0]?.name || 'Select a clear face photo';
+});
+
+document.getElementById('addUserForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const btn = document.getElementById('addUserBtn');
+  btn.disabled = true; btn.textContent = '⏳ Processing…';
+  const fd = new FormData(e.target);
+  try {
+    const res = await fetch('/api/users', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (res.ok) {
+      showToast(`User "${data.data.name}" added successfully!`, 'success');
+      e.target.reset(); imgFileName.textContent = 'Select a clear face photo';
+      setTimeout(() => location.reload(), 1200);
+    } else {
+      showToast(data.message || 'Failed to add user.', 'error');
+    }
+  } catch(err) {
+    showToast('Network error: ' + err, 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = '➕ Add User';
+  }
+});
+
+document.addEventListener('click', async e => {
+  const btn = e.target.closest('.delete-user-btn');
+  if (!btn) return;
+  const id   = btn.dataset.userId;
+  const name = btn.dataset.userName;
+  if (!confirm(`Remove "${name}" from the system?`)) return;
+  try {
+    const res = await fetch(`/api/users/${id}`, { method: 'DELETE' });
+    const data = await res.json();
+    if (res.ok) {
+      showToast(`"${name}" removed.`, 'success');
+      document.getElementById(`user-card-${id}`)?.remove();
+    } else {
+      showToast(data.message, 'error');
+    }
+  } catch(err) {
+    showToast('Network error: ' + err, 'error');
+  }
+});
+</script>
+{% endblock %}

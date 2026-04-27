@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — CCTV AI System{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">Dashboard</h1>
+  <p class="page-subtitle">Monitor attendance and security across your surveillance feeds</p>
+</div>
+
+<!-- Stats Row -->
+<div class="stats-grid">
+  <div class="stat-card blue">
+    <div class="stat-icon blue">👤</div>
+    <div>
+      <div class="stat-value" id="stat-users">—</div>
+      <div class="stat-label">Registered Users</div>
+    </div>
+  </div>
+  <div class="stat-card green">
+    <div class="stat-icon green">✅</div>
+    <div>
+      <div class="stat-value" id="stat-attendance">—</div>
+      <div class="stat-label">Attendance Today</div>
+    </div>
+  </div>
+  <div class="stat-card red">
+    <div class="stat-icon red">🚨</div>
+    <div>
+      <div class="stat-value" id="stat-intruders">—</div>
+      <div class="stat-label">Intruder Alerts</div>
+    </div>
+  </div>
+  <div class="stat-card purple">
+    <div class="stat-icon purple">🎬</div>
+    <div>
+      <div class="stat-value" id="stat-status" style="font-size:18px">Idle</div>
+      <div class="stat-label">Processing Status</div>
+    </div>
+  </div>
+</div>
+
+<!-- Main 2-column grid -->
+<div class="grid-3">
+  <!-- Left: Upload + Results -->
+  <div style="display:flex; flex-direction:column; gap:24px;">
+    <!-- Upload Card -->
+    <div class="card">
+      <div class="card-title">📹 Upload Surveillance Video <span class="arrow">›</span></div>
+      <form id="uploadForm">
+        <div class="upload-zone" id="uploadZone">
+          <input type="file" id="videoFile" name="video" accept=".mp4,.avi,.mov,.mkv,.webm" />
+          <div class="upload-icon">📹</div>
+          <div class="upload-title" id="uploadFileName">Drop video here or click to browse</div>
+          <div class="upload-sub">Supported formats</div>
+          <div class="upload-formats">
+            <span class="badge">MP4</span><span class="badge">AVI</span>
+            <span class="badge">MOV</span><span class="badge">MKV</span><span class="badge">WEBM</span>
+          </div>
+        </div>
+
+        <div class="progress-wrap" id="progressWrap">
+          <div class="progress-label">
+            <span id="progressMsg">Processing…</span>
+            <span id="progressPct">0%</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+        </div>
+
+        <div style="margin-top:20px; display:flex; gap:12px;">
+          <button type="submit" class="btn btn-primary" id="uploadBtn">▶ Process Video</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Results -->
+    <div class="card">
+      <div class="card-title">📊 Processing Results <span class="arrow">›</span></div>
+      <div id="resultsArea">
+        <div class="empty-state">
+          <div class="empty-icon">🎞️</div>
+          <div class="empty-title">No results yet</div>
+          <p>Upload and process a video to see face recognition results here.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: Quick Panel + Notifications -->
+  <div style="display:flex; flex-direction:column; gap:24px;">
+    <!-- Quick Panel -->
+    <div class="quick-panel">
+      <div class="card-title">⚡ Quick Panel</div>
+      <div class="quick-item">
+        <div class="quick-label"><span class="quick-icon">📹</span> CCTV Cam</div>
+        <label class="toggle"><input type="checkbox" checked /><span class="toggle-slider"></span></label>
+      </div>
+      <div class="quick-item">
+        <div class="quick-label"><span class="quick-icon">🔔</span> Alerts</div>
+        <label class="toggle"><input type="checkbox" checked /><span class="toggle-slider"></span></label>
+      </div>
+      <div class="quick-item">
+        <div class="quick-label"><span class="quick-icon">🔊</span> Sound</div>
+        <label class="toggle"><input type="checkbox" checked /><span class="toggle-slider"></span></label>
+      </div>
+      <div class="quick-item">
+        <div class="quick-label"><span class="quick-icon">🔒</span> Auto-Lock</div>
+        <label class="toggle"><input type="checkbox" /><span class="toggle-slider"></span></label>
+      </div>
+    </div>
+
+    <!-- Notifications -->
+    <div class="notifications-card">
+      <div class="card-title">🔔 Notifications <span class="arrow">›</span></div>
+      <div id="notifArea">
+        <div class="notif-item">
+          <div class="notif-dot blue"></div>
+          <div>
+            <div class="notif-text">System started successfully</div>
+            <div class="notif-time">Just now</div>
+          </div>
+        </div>
+        <div class="notif-item">
+          <div class="notif-dot green"></div>
+          <div>
+            <div class="notif-text">All modules loaded</div>
+            <div class="notif-time">On startup</div>
+          </div>
+        </div>
+        <div class="notif-item">
+          <div class="notif-dot amber"></div>
+          <div>
+            <div class="notif-text">Upload a video to begin</div>
+            <div class="notif-time">Waiting…</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const uploadForm   = document.getElementById('uploadForm');
+const videoFile    = document.getElementById('videoFile');
+const uploadBtn    = document.getElementById('uploadBtn');
+const uploadZone   = document.getElementById('uploadZone');
+const progressWrap = document.getElementById('progressWrap');
+const progressFill = document.getElementById('progressFill');
+const progressMsg  = document.getElementById('progressMsg');
+const progressPct  = document.getElementById('progressPct');
+const resultsArea  = document.getElementById('resultsArea');
+const uploadFileName = document.getElementById('uploadFileName');
+
+videoFile.addEventListener('change', () => {
+  uploadFileName.textContent = videoFile.files[0]?.name || 'Drop video here or click to browse';
+});
+
+uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+uploadZone.addEventListener('drop', e => {
+  e.preventDefault(); uploadZone.classList.remove('drag-over');
+  if (e.dataTransfer.files.length) {
+    const dt = new DataTransfer();
+    dt.items.add(e.dataTransfer.files[0]);
+    videoFile.files = dt.files;
+    uploadFileName.textContent = e.dataTransfer.files[0].name;
+  }
+});
+
+uploadForm.addEventListener('submit', async e => {
+  e.preventDefault();
+  if (!videoFile.files.length) { showToast('Please select a video file.', 'error'); return; }
+  const fd = new FormData();
+  fd.append('video', videoFile.files[0]);
+  uploadBtn.disabled = true; uploadBtn.textContent = '⏳ Uploading…';
+  progressWrap.classList.add('visible');
+  try {
+    const res  = await fetch('/api/upload_video', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (!res.ok) { showToast(data.message || 'Upload failed.', 'error'); return; }
+    showToast('Video uploaded! Processing started.', 'success');
+    addNotification('Video processing started', 'blue');
+    pollStatus();
+  } catch(err) {
+    showToast('Network error: ' + err, 'error');
+  } finally {
+    uploadBtn.disabled = false; uploadBtn.textContent = '▶ Process Video';
+  }
+});
+
+function addNotification(text, dotColor = 'blue') {
+  const area = document.getElementById('notifArea');
+  const item = document.createElement('div');
+  item.className = 'notif-item';
+  item.innerHTML = `<div class="notif-dot ${dotColor}"></div><div><div class="notif-text">${text}</div><div class="notif-time">Just now</div></div>`;
+  area.prepend(item);
+}
+
+let pollTimer = null;
+function pollStatus() {
+  clearInterval(pollTimer);
+  pollTimer = setInterval(async () => {
+    try {
+      const r = await fetch('/api/processing_status');
+      const d = await r.json();
+      const s = d.data;
+      progressMsg.textContent = s.message;
+      progressPct.textContent = s.progress + '%';
+      progressFill.style.width = s.progress + '%';
+      document.getElementById('stat-status').textContent = s.running ? 'Running' : 'Done';
+      if (!s.running) {
+        clearInterval(pollTimer);
+        showToast(s.message, 'info');
+        addNotification('Processing complete — ' + (s.result_count || 0) + ' face(s)', 'green');
+        if (s.result_count > 0) fetchResults();
+        refreshStats();
+      }
+    } catch(e) {}
+  }, 1500);
+}
+
+async function fetchResults() {
+  const attRes = await fetch('/api/attendance?limit=50');
+  const attData = await attRes.json();
+  const logs = attData.data || [];
+  if (!logs.length) { resultsArea.innerHTML = '<div class="empty-state"><div class="empty-icon">😶</div><div class="empty-title">No faces detected</div></div>'; return; }
+  resultsArea.innerHTML = logs.slice(0,20).map(r => {
+    const conf = parseFloat(r.confidence) * 100;
+    const cls  = conf >= 70 ? 'conf-high' : conf >= 50 ? 'conf-medium' : 'conf-low';
+    return `<div class="result-item">
+      <div class="result-icon">✅</div>
+      <div class="result-info">
+        <div class="result-name">${r.name}</div>
+        <div class="result-meta">${r.timestamp}</div>
+      </div>
+      <div class="result-conf"><span class="conf-badge ${cls}">${conf.toFixed(1)}%</span></div>
+    </div>`;
+  }).join('');
+}
+
+async function refreshStats() {
+  try {
+    const [u, a, i] = await Promise.all([
+      fetch('/api/users').then(r=>r.json()),
+      fetch('/api/attendance').then(r=>r.json()),
+      fetch('/api/intruders').then(r=>r.json()),
+    ]);
+    document.getElementById('stat-users').textContent      = (u.data||[]).length;
+    document.getElementById('stat-attendance').textContent = (a.data||[]).length;
+    document.getElementById('stat-intruders').textContent  = (i.data||[]).length;
+  } catch(e) {}
+}
+refreshStats();
+</script>
+{% endblock %}

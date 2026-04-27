@@ -1,0 +1,15 @@
+# CCTV AI Attendance & Intruder Detection System
+# requirements.txt
+#
+# Install with: pip install -r requirements.txt
+# Note: cmake and dlib must be installed first on Windows (see SETUP.md)
+
+flask>=2.3.0
+flask-cors>=4.0.0
+mysql-connector-python>=8.1.0
+opencv-python>=4.8.0
+face-recognition>=1.3.0
+numpy>=1.24.0
+Werkzeug>=2.3.0
+python-dotenv>=1.0.0
+playsound>=1.3.0

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Intruder Alerts — CCTV AI System{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">Intruder Alerts</h1>
+  <p class="page-subtitle">Unknown faces detected by the surveillance system</p>
+</div>
+
+{% if logs %}
+<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:24px;">
+  <div class="alert-count-badge">
+    <span class="pulse"></span>
+    {{ logs|length }} Alert(s) Recorded
+  </div>
+  <a href="/intruders" class="btn btn-outline btn-sm">↺ Refresh</a>
+</div>
+
+<div class="alert-grid">
+  {% for log in logs %}
+  <div class="alert-card">
+    {% if log.image_path %}
+      <img src="/static/{{ log.image_path }}" alt="Intruder {{ log.id }}" class="alert-img"
+           onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+      <div class="alert-img-placeholder" style="display:none">🚫</div>
+    {% else %}
+      <div class="alert-img-placeholder">🚫</div>
+    {% endif %}
+    <div class="alert-body">
+      <div class="alert-label">⚠️ Unknown Person</div>
+      <div class="alert-time">🕐 {{ log.timestamp }}</div>
+      {% if log.confidence is not none %}
+      <div style="margin-top:8px">
+        {% set dist_pct = (log.confidence | float) * 100 %}
+        <span class="conf-badge conf-low">
+          Distance {{ "%.1f"|format(dist_pct) }}%
+        </span>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% else %}
+<div class="card">
+  <div class="empty-state">
+    <div class="empty-icon">🛡️</div>
+    <div class="empty-title">No intruders detected</div>
+    <p>All detected faces matched registered users, or no video has been processed yet.</p>
+  </div>
+</div>
+{% endif %}
+
+<div class="toast-container" id="toastContainer"></div>
+{% endblock %}
