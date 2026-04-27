@@ -1,8 +1,8 @@
 # Environments
 .env
 .venv/
-env/
 venv/
+env/
 ENV/
 env.bak/
 venv.bak/
@@ -11,11 +11,36 @@ venv.bak/
 __pycache__/
 *.py[cod]
 *$py.class
+*.so
+*.egg
+*.egg-info/
 
 # IDEs
 .vscode/
 .idea/
+*.swp
 
 # OS generated files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
+
+# User generated uploads and data
+# We ignore these so we don't push huge videos or private images to GitHub!
+static/uploads/*
+static/intruders/*
+static/user_images/*
+!static/uploads/.gitkeep
+!static/intruders/.gitkeep
+!static/user_images/.gitkeep
+
+# Database (if any local sqlite fallback gets created)
+*.db
+*.sqlite3
+
+# Logs
+*.log
