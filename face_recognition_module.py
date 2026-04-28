@@ -30,9 +30,7 @@ from config import (
 
 logger = logging.getLogger(__name__)
 
-# ---------------------------------------------------------------------------
 # Alert helpers (non-blocking)
-# ---------------------------------------------------------------------------
 
 def _play_beep():
     """Play alert sound in a background thread (Windows + fallback)."""
@@ -54,8 +52,6 @@ def trigger_alert():
     t = threading.Thread(target=_play_beep, daemon=True)
     t.start()
 
-
-# ---------------------------------------------------------------------------
 # Encoding helpers
 # ---------------------------------------------------------------------------
 
@@ -90,8 +86,6 @@ def encode_face_from_array(rgb_array: np.ndarray) -> Optional[np.ndarray]:
         logger.error(f"Error encoding face array: {e}")
         return None
 
-
-# ---------------------------------------------------------------------------
 # Matching
 # ---------------------------------------------------------------------------
 
@@ -121,10 +115,7 @@ def find_best_match(
     else:
         return None, "Unknown", best_dist
 
-
-# ---------------------------------------------------------------------------
 # Main processing pipeline
-# ---------------------------------------------------------------------------
 
 FaceResult = Dict[str, Any]
 """
