@@ -14,10 +14,7 @@ from config import DB_CONFIG, ATTENDANCE_COOLDOWN_MINUTES
 
 logger = logging.getLogger(__name__)
 
-
-# ---------------------------------------------------------------------------
 # Connection helper
-# ---------------------------------------------------------------------------
 
 def get_connection():
     """Return a fresh MySQL connection using config settings."""
@@ -28,8 +25,6 @@ def get_connection():
         logger.error(f"Database connection failed: {e}")
         raise
 
-
-# ---------------------------------------------------------------------------
 # Schema initialisation
 # ---------------------------------------------------------------------------
 
@@ -86,10 +81,7 @@ def init_db():
         if conn is not None:
             conn.close()
 
-
-# ---------------------------------------------------------------------------
 # User operations
-# ---------------------------------------------------------------------------
 
 def add_user(name: str, image_path: str, encoding) -> int:
     """Insert a new user; encoding is a numpy array serialised with pickle."""
@@ -159,8 +151,6 @@ def delete_user(user_id: int) -> bool:
         cursor.close()
         conn.close()
 
-
-# ---------------------------------------------------------------------------
 # Attendance operations
 # ---------------------------------------------------------------------------
 
@@ -215,10 +205,7 @@ def get_attendance_logs(limit: int = 200) -> List[Dict[str, Any]]:
         cursor.close()
         conn.close()
 
-
-# ---------------------------------------------------------------------------
 # Intruder operations
-# ---------------------------------------------------------------------------
 
 def add_intruder(image_path: str, confidence: float) -> int:
     """Insert an intruder record and return its id."""
