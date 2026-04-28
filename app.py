@@ -1,6 +1,6 @@
 """
 app.py
-------
+
 Flask application — REST API + HTML dashboard for CCTV Attendance System.
 """
 
@@ -10,6 +10,7 @@ import threading
 from datetime import datetime
 
 # Load .env overrides before config reads os.getenv
+
 try:
     from dotenv import load_dotenv
     load_dotenv()
@@ -31,9 +32,9 @@ from config import (
     ALLOWED_VIDEO_EXT, ALLOWED_IMAGE_EXT,
 )
 
-# ---------------------------------------------------------------------------
+
 # Logging setup
-# ---------------------------------------------------------------------------
+
 logging.basicConfig(
     level=logging.DEBUG if DEBUG else logging.INFO,
     format="%(asctime)s | %(levelname)-8s | %(name)s | %(message)s",
@@ -41,9 +42,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# ---------------------------------------------------------------------------
 # App init
-# ---------------------------------------------------------------------------
+
 app = Flask(__name__)
 app.secret_key = SECRET_KEY
 app.config["MAX_CONTENT_LENGTH"] = 500 * 1024 * 1024   # 500 MB max upload
@@ -61,9 +61,7 @@ processing_status: dict = {
     "results":  [],
 }
 
-# ---------------------------------------------------------------------------
 # Helpers
-# ---------------------------------------------------------------------------
 
 def allowed_file(filename: str, extensions: set) -> bool:
     return "." in filename and filename.rsplit(".", 1)[1].lower() in extensions
@@ -86,9 +84,8 @@ def serialise_row(row: dict) -> dict:
     return out
 
 
-# ---------------------------------------------------------------------------
+
 # Background video processor
-# ---------------------------------------------------------------------------
 
 def _run_video_processing(video_path: str):
     global processing_status
@@ -118,7 +115,7 @@ def _run_video_processing(video_path: str):
             on_unknown_face=on_unknown,
         )
 
-        # Beep alert AFTER processing is complete (not during)
+        # Beep alert AFTER processing is complete
         if has_intruders:
             frm.trigger_alert()
             logger.info("Intruder(s) detected — alert triggered.")
@@ -140,9 +137,8 @@ def _run_video_processing(video_path: str):
         logger.exception("Video processing failed")
 
 
-# ===========================================================================
+
 # HTML Routes (Dashboard)
-# ===========================================================================
 
 @app.route("/")
 def index():
@@ -172,7 +168,6 @@ def users_page():
     )
 
 
-# ===========================================================================
 # REST API — Video
 # ===========================================================================
 
@@ -207,7 +202,6 @@ def get_processing_status():
     return api_response(data=safe)
 
 
-# ===========================================================================
 # REST API — Users
 # ===========================================================================
 
@@ -254,8 +248,6 @@ def delete_user(user_id: int):
         return api_response(message=f"User {user_id} deleted.")
     return api_response(message="User not found.", status=404, error="not_found")
 
-
-# ===========================================================================
 # REST API — Attendance
 # ===========================================================================
 
@@ -266,7 +258,6 @@ def get_attendance():
     return api_response(data=[serialise_row(r) for r in logs])
 
 
-# ===========================================================================
 # REST API — Intruders
 # ===========================================================================
 
@@ -276,10 +267,6 @@ def get_intruders():
     logs  = db.get_intruder_logs(limit)
     return api_response(data=[serialise_row(r) for r in logs])
 
-
-
-
-# ===========================================================================
 # Entry point
 # ===========================================================================
 
